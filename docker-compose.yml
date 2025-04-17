@@ -1,0 +1,46 @@
+services:
+    #  --------------------------------------------
+    backend-ia:
+      build:
+        context: ./ia-management
+        dockerfile: Dockerfile
+      container_name: ia-management
+      depends_on:
+        mysql-ia:
+          condition: service_healthy
+      ports:
+        - "9020:8080"
+      networks:
+        - ia
+    #  --------------------------------------------
+    mysql-ia:
+      build:
+        context: ./MySQL
+        dockerfile: Dockerfile
+      container_name: mysql-ia
+      volumes:
+        - ./MySQL/mysql_data:/var/lib/mysql
+      ports:
+        - "8012:3306"
+      networks:
+        - ia
+      healthcheck:
+        test: [ "CMD","mysql", "-u", "sdgrh", "-psdgrh123*" ]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+    #  --------------------------------------------
+    adminer-ia:
+      image: adminer
+      container_name: adminer-ia
+      depends_on:
+        - mysql-ia
+      ports:
+        - "9010:8080"
+      networks:
+        - ia
+  #  --------------------------------------------
+networks:
+  ia:
+    driver: bridge
+    name: ia
